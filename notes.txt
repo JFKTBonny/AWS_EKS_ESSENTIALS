@@ -1,0 +1,38 @@
+To update your kubeconfig file in order to access the cluster, run:
+       aws eks update-kubeconfig --name public-endpoint-cluster
+       aws eks describe-cluster --name public-endpoint-cluster
+
+cluster security analysis for this case:
+   The cluster creator is the only security layer protecting the cluster
+   from compromise or unauthorized access...
+   Anyone who gains access to the creator credentials can take over the cluster...
+
+*** The current setup represents the lack of defense,as the cluster depends on a single security layer,
+    (the cluster creator access and secret key)...
+*** To enhance security:
+          - configure a role with MFA and an external ID...
+          - using aws roles to assign temporary credentials to the cluster creator is
+          more secure than permanent access key ID and secret access key credentials...  
+
+Public Endpoint Restrictions with  CLI command:
+
+    aws eks update-cluster-config \
+        --region region-code \
+        --name public-endpoint-cluster \
+        --resources-vpc-config endpointPublicAccess=true,
+        publicAccessCidrs="MyIP/32"
+
+MyIP: my public IP 
+
+###################### Network security
+            API calls between the data and the control planes of the cluster  should occur over
+            a private network to minimize the attack surface...
+
+            The cluster ENIs are responsible for transmitting traffic from the control plane to the data plane...
+            ENIs must be deployed in private subnets to ensure that all or part of the API communication remains private
+            and protected from external access..
+
+    *** In production env, ENIs are ofyen deployed in their own subnets such that they do not coexist with the worker nodes...
+    *** The ENIs subnets are often allocated the /28 CIDR block within the data plane VPC...
+              
+
