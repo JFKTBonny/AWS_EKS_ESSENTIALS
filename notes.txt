@@ -1,0 +1,19 @@
+#### EKS Describe Cluster Policy:
+   An AWS administrator need the describe policy to create and administer EKS cluster...
+   he can't execute certain commands if he can not describe the cluster...
+   AWS does not include this permission in the IAM administrator policy by default...
+   He must create a custom policy that includes it and then attach that policy to the cluster administrator...
+
+
+NB: The -o IdentitiesOnly=yes flag is used with SSH-based commands like ssh or scp to ensure that 
+    only the identity file specified with the -i option is used for authentication.
+
+    By default, the SSH client may attempt to use all available identities loaded in the SSH agent, 
+    which can lead to a "Too many authentication failures" error if the server disconnects after a 
+    certain number of failed attempts.
+
+    Adding -o IdentitiesOnly=yes tells the client to ignore other
+    identities and only try the one explicitly provided, ensuring 
+    a more reliable and direct connection to the server...
+
+###  we have strengthen the security of the cluster with private endpoint
