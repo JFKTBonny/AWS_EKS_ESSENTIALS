@@ -1,1 +1,1 @@
-# AWS_EKS_ESSENTIALS
+Endpoint Hybrid Access Cluster
