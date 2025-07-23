@@ -5,5 +5,8 @@ variable "cluster_name" {
 variable "cluster_version" {
   default = "1.31"
 }
-variable "private_subnet_ids" {}
+variable "enis_subnet_ids" {}
 
+variable "cluster_role_name" {
+   default = "public-endpoint-cluster-role"
+}

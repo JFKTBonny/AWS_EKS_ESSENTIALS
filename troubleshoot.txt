@@ -1,0 +1,43 @@
+❗ Kubernetes Pod Stuck in Pending - Root Cause and Resolution
+
+Your pod `nginx-deployment-d556bf558-zb7th` is in a Pending state with the message:
+
+    0/1 nodes are available: 1 Too many pods.
+
+🔍 Root Cause:
+This error means your node has reached its maximum pod density — it cannot schedule any more pods due to IP address limitations imposed by the EC2 instance's ENI and networking capabilities.
+
+    EKS Pod Limit Formula:
+        max_pods = (ENIs * (IPv4 addresses per ENI - 1)) + 2
+
+    This comes from how the AWS VPC CNI assigns IPs to pods.
+
+✅ How to Fix It:
+
+    1. Check Current Pod Usage:
+        kubectl get pods -o wide
+
+    2. Scale the Node Group:
+        eksctl scale nodegroup \
+        --cluster <your-cluster-name> \
+        --name <nodegroup-name> \
+        --nodes <desired-count>
+
+    Or do this via the AWS Console under EKS > Node Groups.
+
+    3. Use Larger Instance Types:
+    Switch to instances with more ENIs and IP capacity, e.g., from t3.medium to m5.large.
+
+    4. Customize AWS VPC CNI for Higher Pod Density:
+    Enable features like prefix delegation or configure:
+        - WARM_ENI_TARGET
+        - WARM_IP_TARGET
+        - ENABLE_PREFIX_DELEGATION
+
+    More info: https://docs.aws.amazon.com/eks/latest/userguide/cni-increase-ip-addresses.html
+
+📌 Quick Fix (for Testing):
+   Delete other running pods to free up capacity:
+     kubectl delete pod <pod-name>
+
+Then retry your deployment.

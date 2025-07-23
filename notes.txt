@@ -1,38 +1,32 @@
-To update your kubeconfig file in order to access the cluster, run:
-       aws eks update-kubeconfig --name public-endpoint-cluster
-       aws eks describe-cluster --name public-endpoint-cluster
+✅ AWS EC2 describe-instance-types and Pod Density Explanation
 
-cluster security analysis for this case:
-   The cluster creator is the only security layer protecting the cluster
-   from compromise or unauthorized access...
-   Anyone who gains access to the creator credentials can take over the cluster...
+The following command lists instance types starting with "t3." along with their ENI and IPv4 capacity:
 
-*** The current setup represents the lack of defense,as the cluster depends on a single security layer,
-    (the cluster creator access and secret key)...
-*** To enhance security:
-          - configure a role with MFA and an external ID...
-          - using aws roles to assign temporary credentials to the cluster creator is
-          more secure than permanent access key ID and secret access key credentials...  
+    aws ec2 describe-instance-types \
+    --filters "Name=instance-type,Values=t3.*" \
+    --query "InstanceTypes[].{Type: InstanceType, MaxENI: NetworkInfo.MaximumNetworkInterfaces, IPv4addr: NetworkInfo.Ipv4AddressesPerInterface}" \
+    --output table
 
-Public Endpoint Restrictions with  CLI command:
+🔎 Purpose:
+This command does NOT directly show pod density, but provides critical data used to calculate it.
 
-    aws eks update-cluster-config \
-        --region region-code \
-        --name public-endpoint-cluster \
-        --resources-vpc-config endpointPublicAccess=true,
-        publicAccessCidrs="MyIP/32"
+    Pod density (maximum number of pods per node) in Amazon EKS is calculated using:
 
-MyIP: my public IP 
+        max_pods = (ENIs * (IPv4 addresses per ENI - 1)) + 2
 
-###################### Network security
-            API calls between the data and the control planes of the cluster  should occur over
-            a private network to minimize the attack surface...
+Explanation:
+    - Each ENI can support multiple IPv4 addresses.
+    - One IP is needed per pod.
+    - Subtract 1 for the node IP on each ENI.
+    - Add 2 for system-reserved pods.
 
-            The cluster ENIs are responsible for transmitting traffic from the control plane to the data plane...
-            ENIs must be deployed in private subnets to ensure that all or part of the API communication remains private
-            and protected from external access..
+✅ Example Calculation for t3.medium:
+    Assuming from AWS CLI output:
+    - MaxENI = 3
+    - IPv4addr = 6
 
-    *** In production env, ENIs are ofyen deployed in their own subnets such that they do not coexist with the worker nodes...
-    *** The ENIs subnets are often allocated the /28 CIDR block within the data plane VPC...
-              
+Then:
+    max_pods = (3 * (6 - 1)) + 2 = (3 * 5) + 2 = 17
+
+So t3.medium supports 17 pods by default in EKS.
 
