@@ -1,38 +1,55 @@
-To update your kubeconfig file in order to access the cluster, run:
-       aws eks update-kubeconfig --name public-endpoint-cluster
-       aws eks describe-cluster --name public-endpoint-cluster
+Recently AWS relied on aws-auth configmap access control to authorize administrative access to EKS cluster...
+The authentication in aws-auth ConfigMap  occurs in AWS IAM,while authorization takes place in k8s...
 
-cluster security analysis for this case:
-   The cluster creator is the only security layer protecting the cluster
-   from compromise or unauthorized access...
-   Anyone who gains access to the creator credentials can take over the cluster...
+This  requires clusters administrators to switch between AWS IAM and K8s APIs to configure files when managing 
+multiple cluster operators...
 
-*** The current setup represents the lack of defense,as the cluster depends on a single security layer,
-    (the cluster creator access and secret key)...
-*** To enhance security:
-          - configure a role with MFA and an external ID...
-          - using aws roles to assign temporary credentials to the cluster creator is
-          more secure than permanent access key ID and secret access key credentials...  
+The switching and editing of configurations make the access control method complicated and error prone especially when 
+you have many operators...
 
-Public Endpoint Restrictions with  CLI command:
+AWS has since deprecated the aws-auth ConfigMap access control method and replaced it with the new cluster access control
+method...
 
-    aws eks update-cluster-config \
-        --region region-code \
-        --name public-endpoint-cluster \
-        --resources-vpc-config endpointPublicAccess=true,
-        publicAccessCidrs="MyIP/32"
+however, the aws-auth configmap method remains the default access control mmethod in EKS...
 
-MyIP: my public IP 
+Both authentication and authorization occur at one place: in the AWS IAM...
 
-###################### Network security
-            API calls between the data and the control planes of the cluster  should occur over
-            a private network to minimize the attack surface...
+The aws-auth ConfigMap access control involves 2 differents services: the AWS IAM and the K8S RBAC services...
 
-            The cluster ENIs are responsible for transmitting traffic from the control plane to the data plane...
-            ENIs must be deployed in private subnets to ensure that all or part of the API communication remains private
-            and protected from external access..
+Aws-auth  cm implements RBAC for cluster administrators...
 
-    *** In production env, ENIs are ofyen deployed in their own subnets such that they do not coexist with the worker nodes...
-    *** The ENIs subnets are often allocated the /28 CIDR block within the data plane VPC...
-              
+Aws-auth ConfigMap enables or denies cluster access for IAM principals...
 
+### EKS assigns the IAM principal that created the cluster, the ""system:masters(the super admin)"" RBAC group...
+    The principals in this group have unrestricted access to the cluster...
+    The cluster creator's membership in the group is not visible in the kubeconfig file...
+    Consequently, you can not revoke the cluster creator's access by editing the aws-auth configmap configuration...
+    aws-auth cm can be edited to add  new cluster administrators...###
+
+# Auth using kubeconfig file:
+       aws eks update-kubeconfig --name <cluster_name>
+
+# fetch info about the user:
+        kubectl auth whoami
+
+# read the kubeconfig configuration:
+       kubectl config view 
+       kubectl config view -o template --template='{{ index."current-context"}} ' 
+
+# edit the aws-auth ConfigMap:
+       kubectl edit cm aws-auth -n kube-system    
+
+# Retrieve the available roles:
+       kubectl get clusterroles  or
+       kubectl get clusterroles | grep -v '^system'  
+
+################### Mapping of K8s  RBAC groups to EKS roles ############################################
+
+K8s Groups                  EKS Roles                            Privileges
+
+system:masters            cluster-adminCluster-wide              super admin
+admin                     Admin                              Full  access within a namespace
+edit                      edit                               Perform basic actions like deploying pods,
+                                                             viewing and observing nonsensitive objects
+                                                             within a given namespace
+view                       view                               Read-only within a namespace
