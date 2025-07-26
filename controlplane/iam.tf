@@ -1,8 +1,6 @@
-
-
 #role required to create a cluster
-resource "aws_iam_role" "cluster_role" {
-  name = "${var.cluster_name}-role"
+resource "aws_iam_role" "eks_assume_role" {
+  name = var.cluster_role_name
   assume_role_policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -19,8 +17,9 @@ resource "aws_iam_role" "cluster_role" {
 POLICY
 }
 
-#add policy to cluster role
+#assume cluster role
 resource "aws_iam_role_policy_attachment" "amazon_eks_cluster_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.cluster_role.name
+  role       = aws_iam_role.eks_assume_role.name
 }
+
