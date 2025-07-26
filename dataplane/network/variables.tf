@@ -2,6 +2,8 @@ variable "cidr_blocks" {
   description = "cidr blocks"
   type        = map(any)
   default = {
+    eni-subnet-1 = "10.0.1.0/28"
+    eni-subnet-2 = "10.0.2.0/28"
     private-subnet-1 = "10.0.3.0/24"
     private-subnet-2 = "10.0.4.0/24"
     public-subnet-1 = "10.0.5.0/24"
@@ -12,8 +14,8 @@ variable "cidr_blocks" {
 }
 
 variable "vpc_tag" {
-    default = "public-endpoint-cluster-vpc"
+    default = "private-endpoint-cluster-vpc"
 }
 
-variable "cluster_security_group_id" {
-}
+#variable "cluster_security_group_id" {}
+

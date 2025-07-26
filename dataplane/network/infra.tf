@@ -6,7 +6,7 @@ resource "aws_internet_gateway" "internet_gw" {
     Name = "cluster-internet-gateway"
   }
 }
-#create route for internet gateway
+#create route for intenet gateway
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.cluster_vpc.id
   route {
