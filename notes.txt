@@ -1,4 +1,7 @@
-################### Access Entries and Policy Association ########################################
+#####################################
+Access Entries and Policy Association:
+#####################################
+
 They are the new EKS cluster access management method...
 No user has irrevocable or permanent access to cluster...
 The cluster creators do not have automatic access to the cluster and their access can be revoked 
