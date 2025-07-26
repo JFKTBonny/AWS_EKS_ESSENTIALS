@@ -1,0 +1,52 @@
+################### Access Entries and Policy Association ########################################
+They are the new EKS cluster access management method...
+No user has irrevocable or permanent access to cluster...
+The cluster creators do not have automatic access to the cluster and their access can be revoked 
+before or after the cluster creation...
+They are implemented in 3 steps process:
+   1- Creation of the IAM principal in the ""EKS IAM"" (access entry)...
+        - the cluster administrator registers an AWS IAM principal in the "" AWS/EKS access entry IAM "" service...
+   2- association of the EKS principal with access policies or custom k8s permissions(access policy association)...
+        - the cluster administrator attaches policies to the registered AWS/EKS IAM principal to access the k8s 
+          components and ogjects...  
+   3- automation behind the scenes mapping..
+        - EKS completes the policy assigment with the automated behind-the-scenes mapping between the access policy and 
+          k8s RBAC groups... 
+
+Steps summary:
+       1- A cluster administrator creates an access entry for an IAM  principal... 
+       2- He assigns a policy or permission to the IAM principal...
+       3- EKS does the behind-the-scenes mapping... 
+
+#### Command to find the built-in access policies: aws eks list-access-policies... 
+                                                   aws eks list-access-policies –-output table... 
+                      #################
+                      Managed Policies:
+                      #################
+
+Default K8s Roles:              Privileges :          AWS EKS policy:                  Administrators:
+
+Cluster-admin                Cluster-wide           AmazonEKSClusterAdminPolicy      Cluster Creators
+Admin                    full access in a ns         AmazonEKSAdminPolicy            ns administrator
+Edit                     Read/Write in a ns          AmazonEKSEditPolicy              ns editor
+View                     Read-only in a ns            AmazonEKSViewPolicy             Security auditor
+Custom                    Cluster developer           Custom policy                   Developers/administrators          
+
+### Authentication modes:
+                   - API: for only new  EKS cluster access management method... 
+                   - API_AND_CONFIG_MAP: for both aws-auth configmap and new cluster access management
+                   - CONFIGMAP: for only aws-auth configmap access management method...
+
+Command to switch authentication modes after cluster creation:
+                     aws eks update-cluster-config \
+                     --name <CLUSTER_NAME> \
+                     --access-config authenticationMode=API
+
+                             OR
+
+                     aws eks update-cluster-config \
+                     --name <CLUSTER_NAME> \
+                     --access-config authenticationMode=API_AND_CONFIG_MAP
+
+*** The eks: DescribeCluster permission is mandatory for all cluster administrators...***                  
+                                                               
