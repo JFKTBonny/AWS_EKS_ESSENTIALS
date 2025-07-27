@@ -1,38 +1,30 @@
-To update your kubeconfig file in order to access the cluster, run:
-       aws eks update-kubeconfig --name public-endpoint-cluster
-       aws eks describe-cluster --name public-endpoint-cluster
+- create an AWS ECR registry:
+    aws ecr create-repository \
+        --repository-name docker-images \
+        --region us-east-1 \
+        --tags '[{"Key":"env","Value":"test"},{"Key":"team","Value":"DevOps"}]'
 
-cluster security analysis for this case:
-   The cluster creator is the only security layer protecting the cluster
-   from compromise or unauthorized access...
-   Anyone who gains access to the creator credentials can take over the cluster...
+-  log in to ECR registry: 
+     aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
+*** aws ecr get-login-password --region us-east-1 is piped to the docker login so that you can use docker commands to administer the ECR...***
 
-*** The current setup represents the lack of defense,as the cluster depends on a single security layer,
-    (the cluster creator access and secret key)...
-*** To enhance security:
-          - configure a role with MFA and an external ID...
-          - using aws roles to assign temporary credentials to the cluster creator is
-          more secure than permanent access key ID and secret access key credentials...  
+- Build the blueapp image for the ECR:
+    docker build -t 163447728448.dkr.ecr.us-east-1.amazonaws.com/docker-images:blueapp .
 
-Public Endpoint Restrictions with  CLI command:
+- Push the image to ECR:
+     docker push 163447728448.dkr.ecr.us-east-1.amazonaws.com/docker-images:blueapp
 
-    aws eks update-cluster-config \
-        --region region-code \
-        --name public-endpoint-cluster \
-        --resources-vpc-config endpointPublicAccess=true,
-        publicAccessCidrs="MyIP/32"
 
-MyIP: my public IP 
-
-###################### Network security
-            API calls between the data and the control planes of the cluster  should occur over
-            a private network to minimize the attack surface...
-
-            The cluster ENIs are responsible for transmitting traffic from the control plane to the data plane...
-            ENIs must be deployed in private subnets to ensure that all or part of the API communication remains private
-            and protected from external access..
-
-    *** In production env, ENIs are ofyen deployed in their own subnets such that they do not coexist with the worker nodes...
-    *** The ENIs subnets are often allocated the /28 CIDR block within the data plane VPC...
+The previous command create and ecr registry, build a docker image and push it in that ecr...
+In order to use that stored image in our app running within and eks cluster,we should:
+              - grant accsess to eks to pull and run the image...
+              - an IAM or sa policy is used to grant that permission
+              - ECR access will be granted to workers nodes to enable them to pull and run the image from the private ECR...
               
+    example of terraform config files that enables workers to access ECR to pull and run an image:
+
+            resource "aws_iam_role_policy_attachment" "amazon_ec2_container_registry_read_only" {
+                policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+                role       = aws_iam_role.nodes_role.name
+            }           
 
