@@ -15,5 +15,9 @@ variable "vpc_tag" {
     default = "public-endpoint-cluster-vpc"
 }
 
+variable "cluster_name" {
+    default = "public-endpoint-cluster"
+}
 variable "cluster_security_group_id" {
 }
+

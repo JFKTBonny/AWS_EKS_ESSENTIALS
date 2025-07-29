@@ -33,3 +33,8 @@ resource "aws_iam_role_policy_attachment" "amazon_ssm_managed_instance_core" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   role       = aws_iam_role.worker_nodes_role.name
 }
+
+resource "aws_iam_role_policy_attachment" "load-balancer_balancer_controller_policy" {
+  policy_arn =  aws_iam_policy.load_balancer_controller_policy.arn
+  role       = aws_iam_role.worker_nodes_role.name
+}

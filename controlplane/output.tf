@@ -9,3 +9,4 @@ output "cluster_security_group_id" {
 output "cluster_object" {
   value = aws_eks_cluster.public_endpoint_cluster
 }
+
