@@ -1,5 +1,3 @@
-
-
 #role required to create a cluster
 resource "aws_iam_role" "cluster_role" {
   name = "${var.cluster_name}-role"

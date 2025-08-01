@@ -23,13 +23,18 @@ resource "aws_iam_role_policy_attachment" "amazon_eks_cni_policy" {
   role       = aws_iam_role.worker_nodes_role.name
 }
 
+# Optional, only if you want to "SSH" to your EKS nodes.
+resource "aws_iam_role_policy_attachment" "amazon_ssm_managed_instance_core" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = aws_iam_role.worker_nodes_role.name
+}
+
 resource "aws_iam_role_policy_attachment" "amazon_ec2_container_registry_read_only" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
   role       = aws_iam_role.worker_nodes_role.name
 }
 
-# Optional, only if you want to "SSH" to your EKS nodes.
-resource "aws_iam_role_policy_attachment" "amazon_ssm_managed_instance_core" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+resource "aws_iam_role_policy_attachment" "secret_manager_access" {
+  policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
   role       = aws_iam_role.worker_nodes_role.name
 }

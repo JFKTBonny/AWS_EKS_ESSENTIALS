@@ -1,38 +1,44 @@
-To update your kubeconfig file in order to access the cluster, run:
-       aws eks update-kubeconfig --name public-endpoint-cluster
-       aws eks describe-cluster --name public-endpoint-cluster
+######################################
+IRSA Authentication and Authorization:
+######################################
 
-cluster security analysis for this case:
-   The cluster creator is the only security layer protecting the cluster
-   from compromise or unauthorized access...
-   Anyone who gains access to the creator credentials can take over the cluster...
+IRSA Flow (EKS + IAM OIDC)
 
-*** The current setup represents the lack of defense,as the cluster depends on a single security layer,
-    (the cluster creator access and secret key)...
-*** To enhance security:
-          - configure a role with MFA and an external ID...
-          - using aws roles to assign temporary credentials to the cluster creator is
-          more secure than permanent access key ID and secret access key credentials...  
+1. EKS injects a projected service account token (OIDC JWT) into the pod at:
+   /var/run/secrets/eks.amazonaws.com/serviceaccount/token
+   This token is signed with an EKS-managed private key and is not related to the TLS certificate used by OIDC.
 
-Public Endpoint Restrictions with  CLI command:
+2. The application inside the pod uses the AWS SDK or CLI, which reads the token and attempts to call sts:AssumeRoleWithWebIdentity.
 
-    aws eks update-cluster-config \
-        --region region-code \
-        --name public-endpoint-cluster \
-        --resources-vpc-config endpointPublicAccess=true,
-        publicAccessCidrs="MyIP/32"
+3. The SDK uses role details (via env vars like AWS_ROLE_ARN and AWS_WEB_IDENTITY_TOKEN_FILE) injected by EKS to configure the call.
 
-MyIP: my public IP 
+4. AWS STS receives the token and uses the registered OIDC provider in IAM to:
+   - Fetch the OIDC issuer’s public key.
+   - Validate the JWT signature and claims (like aud, sub, exp, etc.).
 
-###################### Network security
-            API calls between the data and the control planes of the cluster  should occur over
-            a private network to minimize the attack surface...
+5. If valid and authorized, STS returns temporary credentials (via the role’s trust policy).
 
-            The cluster ENIs are responsible for transmitting traffic from the control plane to the data plane...
-            ENIs must be deployed in private subnets to ensure that all or part of the API communication remains private
-            and protected from external access..
+6. The pod now uses these credentials to access AWS services securely.
 
-    *** In production env, ENIs are ofyen deployed in their own subnets such that they do not coexist with the worker nodes...
-    *** The ENIs subnets are often allocated the /28 CIDR block within the data plane VPC...
-              
+#############################
+IRSA + OpenID Connect (OIDC):
+############################# 
 
+Key Points:
+
+    - IRSA lets EKS pods assume IAM roles using service accounts — no long-term AWS credentials needed.
+    - Uses OIDC (an identity layer on top of OAuth 2.0) for token-based authentication.
+    - EKS acts as an OIDC identity provider with a public endpoint.
+
+    - AWS IAM needs:
+        - The OIDC provider registered (with TLS thumbprint).
+        - A role with a trust policy referencing sub = system:serviceaccount:<namespace>:<serviceaccount>.
+        
+    - Pods receive a JWT token signed by EKS → AWS STS verifies it → returns temporary credentials.
+
+
+Benefits:
+
+    - Secure, fine-grained IAM per pod
+    - No secrets or kube2iam needed
+    - Built into EKS with minimal overhead
