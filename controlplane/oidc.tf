@@ -1,10 +1,15 @@
 
-# Retrieve the TLS certificate for EKS(IdP)
+# Retrieve the TLS certificate for EKS(IdP)...
+# Fetch the TLS certificate used by the EKS cluster's OIDC provider, 
+# so you can extract the SHA-1 fingerprint of the certificate.
+# This is needed to register the OIDC provider with AWS IAM...
 data "tls_certificate" "oidc" {
   url = aws_eks_cluster.public_endpoint_cluster.identity[0].oidc[0].issuer
 }
 
-# Register the IdP in the STS
+# Register the IdP in the STS...
+# This block registers the EKS OIDC identity provider (IdP) with AWS IAM.
+# This is required for enabling IAM Roles for Service Accounts (IRSA).
 resource "aws_iam_openid_connect_provider" "oidc_openid_connect" {
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = [data.tls_certificate.oidc.certificates[0].sha1_fingerprint]
@@ -12,6 +17,7 @@ resource "aws_iam_openid_connect_provider" "oidc_openid_connect" {
 }
 
 # Create an assumed role policy and replace the audience(client ID) with a custom audience...
+# This builds a trust policy document for an IAM role that allows EKS service accounts to assume it via OIDC...
 data "aws_iam_policy_document" "oidc_assume_role_policy" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
