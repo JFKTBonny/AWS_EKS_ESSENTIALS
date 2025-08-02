@@ -1,0 +1,49 @@
+✅ Amazon EBS (Elastic Block Store):
+        Type: Block storage
+
+        Use Case: Persistent volumes for single pod access (e.g., databases)
+
+        Behavior:
+
+        One EBS volume = one pod at a time (can be reattached to another pod)
+
+        Fast, low-latency
+
+        Region & AZ specific (must be in same AZ as the pod)
+
+✅ Amazon EFS (Elastic File System):
+        Type: Shared file storage
+
+        Use Case: Volumes shared across multiple pods, even across nodes
+
+        Behavior:
+
+        Fully managed NFS file system
+
+        Multi-AZ and multi-node access
+
+        Good for content management, logs, shared resources
+
+✅ You’ll typically need:
+        Service Account in Kubernetes – for the pod(s) needing access.
+
+        IAM Role – with the necessary AWS permissions.
+
+        IRSA setup (IAM Role for Service Account) – to map the service account to the IAM role.
+
+        OIDC provider enabled in the EKS cluster – to let AWS verify the service account’s identity.
+
+🔁 Common Addons that need this:
+        aws-ebs-csi-driver
+
+        aws-efs-csi-driver
+
+        aws-load-balancer-controller
+
+        external-dns
+
+        cluster-autoscaler
+
+        karpenter
+
+        cert-manager (if using Route53 DNS validation)
