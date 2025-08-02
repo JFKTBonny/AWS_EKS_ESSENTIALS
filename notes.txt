@@ -1,38 +1,36 @@
-To update your kubeconfig file in order to access the cluster, run:
-       aws eks update-kubeconfig --name public-endpoint-cluster
-       aws eks describe-cluster --name public-endpoint-cluster
+############
+Pod Identity:
+############
 
-cluster security analysis for this case:
-   The cluster creator is the only security layer protecting the cluster
-   from compromise or unauthorized access...
-   Anyone who gains access to the creator credentials can take over the cluster...
+ The EKS Pod Identity is a simplified version of the IRSA method...
+ Pod Identity - What to Know (AWS EKS)
 
-*** The current setup represents the lack of defense,as the cluster depends on a single security layer,
-    (the cluster creator access and secret key)...
-*** To enhance security:
-          - configure a role with MFA and an external ID...
-          - using aws roles to assign temporary credentials to the cluster creator is
-          more secure than permanent access key ID and secret access key credentials...  
+1. Purpose:
+   - Allows Kubernetes pods to securely access AWS services without needing to manage AWS credentials.
 
-Public Endpoint Restrictions with  CLI command:
+2. Key Concepts:
+   - Service Account: Each pod runs with one; it's its identity in Kubernetes.
+   - IAM Role: An AWS identity with policies that define permissions.
+   - Pod Identity Association: Binds a service account to an IAM role.
+   - EKS Pod Identity Agent: Addon that handles credential delivery to pods.
 
-    aws eks update-cluster-config \
-        --region region-code \
-        --name public-endpoint-cluster \
-        --resources-vpc-config endpointPublicAccess=true,
-        publicAccessCidrs="MyIP/32"
+3. Workflow:
+   a. Create a Kubernetes service account.
+   b. Create an IAM role with proper policies.
+   c. Create a Pod Identity Association (link SA to IAM role).
+   d. Deploy pod using the service account.
+   e. EKS Pod Identity Agent fetches temporary credentials.
 
-MyIP: my public IP 
+4. Benefits:
+   - No need to manage long-lived AWS credentials.
+   - Fine-grained access control per workload.
+   - IAM auditing and least privilege best practices.
 
-###################### Network security
-            API calls between the data and the control planes of the cluster  should occur over
-            a private network to minimize the attack surface...
+5. Tools Involved:
+   - Terraform or AWS CLI for setup.
+   - EKS console or kubectl for Kubernetes resources.
 
-            The cluster ENIs are responsible for transmitting traffic from the control plane to the data plane...
-            ENIs must be deployed in private subnets to ensure that all or part of the API communication remains private
-            and protected from external access..
-
-    *** In production env, ENIs are ofyen deployed in their own subnets such that they do not coexist with the worker nodes...
-    *** The ENIs subnets are often allocated the /28 CIDR block within the data plane VPC...
-              
-
+6. Notes:
+   - Requires the "eks-pod-identity-agent" addon.
+   - Works only in EKS with version 1.24+.
+   - Replaces older IRSA (IAM Roles for Service Accounts) in many cases.

@@ -10,6 +10,9 @@ resource "aws_subnet" "private_subnets" {
   count = 2
   tags = {
     Name = "private-subnet-${count.index+1}"
+   "kubernetes.io/role/internal-elb"               = 1
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
   }
   
 }
@@ -20,6 +23,9 @@ resource "aws_subnet" "public_subnets" {
   availability_zone = data.aws_availability_zones.azs.names[count.index]
   count = 2
   tags = {
+    "kubernetes.io/role/elb"               = 1
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
     Name = "public-subnet-${count.index+1}"
   }
 }
