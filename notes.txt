@@ -1,38 +1,136 @@
-To update your kubeconfig file in order to access the cluster, run:
-       aws eks update-kubeconfig --name public-endpoint-cluster
-       aws eks describe-cluster --name public-endpoint-cluster
+###################
+Kubernetes  Volumes:
+###################
 
-cluster security analysis for this case:
-   The cluster creator is the only security layer protecting the cluster
-   from compromise or unauthorized access...
-   Anyone who gains access to the creator credentials can take over the cluster...
+Volumes are directories mounted for containers inside pods to store or access data...
+They represent the basic storage in k8s...
+We can create 2 kinds of volumes:
+                         - ephemeral volume: has a lifecycle of a pod but persists a container is restarted...useful for stateless apps(cache services ...etc) 
+                         - persistent volume: are useful for stateful apps...
 
-*** The current setup represents the lack of defense,as the cluster depends on a single security layer,
-    (the cluster creator access and secret key)...
-*** To enhance security:
-          - configure a role with MFA and an external ID...
-          - using aws roles to assign temporary credentials to the cluster creator is
-          more secure than permanent access key ID and secret access key credentials...  
+####################
+TYPES OF K8S VOLUMES:
+####################
 
-Public Endpoint Restrictions with  CLI command:
+I/
+📦 emptyDir — Where Does It Exist?
+    emptyDir is a Kubernetes volume type that is:
+        - Created on the node (not inside the container or pod namespace).
+        - Shared across all containers in the same pod.
+        - Mounted into the containers via a volume mount.
 
-    aws eks update-cluster-config \
-        --region region-code \
-        --name public-endpoint-cluster \
-        --resources-vpc-config endpointPublicAccess=true,
-        publicAccessCidrs="MyIP/32"
+    🗂️ How It Works:
+            - When the pod is scheduled, the kubelet creates a directory on the node's disk.
+            - That directory is mounted into one or more containers inside the pod.
+            - All containers in the pod can read/write to it if they mount it.
 
-MyIP: my public IP 
+    📌 Example:
+            volumes:
+            - name: cache
+                emptyDir: {}
 
-###################### Network security
-            API calls between the data and the control planes of the cluster  should occur over
-            a private network to minimize the attack surface...
+    🧹 Notes:
+            - Data in emptyDir is deleted when the pod is deleted.
+            - Backed by node disk — memory-backed if you use emptyDir: { medium: "Memory" }
+                Example:
+                        medium: Memory
+                        sizeLimit: 500MB    
 
-            The cluster ENIs are responsible for transmitting traffic from the control plane to the data plane...
-            ENIs must be deployed in private subnets to ensure that all or part of the API communication remains private
-            and protected from external access..
+II/
 
-    *** In production env, ENIs are ofyen deployed in their own subnets such that they do not coexist with the worker nodes...
-    *** The ENIs subnets are often allocated the /28 CIDR block within the data plane VPC...
-              
+📦 hostPath — Where Does It Exist?
+    hostPath mounts a file or directory from the node’s filesystem directly into the pod.
 
+        🗂️ How It Works:
+                - Can be used to expose system paths or logs.
+                - Risky for security; not portable between nodes.
+
+        📌 Example:
+                volumes:
+                - name: host-logs
+                    hostPath:
+                    path: /var/log
+                    type: Directory
+
+        🧹 Notes:
+                - Useful for DaemonSets or monitoring agents.
+                - Tightly coupled to the host.
+
+III/
+
+📦 persistentVolumeClaim: 
+persistentVolumeClaim (PVC) abstracts persistent storage from the underlying infrastructure (EBS, NFS, etc.).
+
+        🗂️ How It Works:
+                - PVC requests a PersistentVolume (PV).
+                - Kubernetes binds the PVC to a matching PV.
+
+        📌 Example:
+                volumes:
+                - name: my-storage
+                    persistentVolumeClaim:
+                    claimName: my-pvc
+
+        🧹 Notes:
+                - Supports dynamic provisioning.
+                - Survives pod restarts and re-attachments.
+
+IV/
+
+📦 configMap:
+    configMap volumes make key-value pairs from a ConfigMap available as files in a container.
+
+    🗂️ How It Works:
+            - The kubelet retrieves the ConfigMap and projects it into the pod as files.
+            - If a key is config.json, it becomes a file named config.json.
+
+    📌 Example:
+            volumes:
+            - name: config-volume
+                configMap:
+                name: app-config
+
+    🧹 Notes:
+            - ConfigMap updates are not guaranteed to reflect immediately in mounted volumes (not real-time).
+            - Avoid using large files; better for text configs.
+
+V/
+
+📦 secret:
+   secret volumes expose sensitive data (like passwords, API keys) as files in containers.
+
+    🗂️ How It Works:
+            - Each key in the secret becomes a file.
+            - The kubelet mounts them with appropriate file permissions.
+
+    📌 Example:
+            volumes:
+            - name: secret-volume
+                secret:
+                secretName: db-credentials
+
+    🧹 Notes:
+            - Default file mode is 0400 for security.
+            - Automatically base64-encoded in the Kubernetes API.
+
+VI/
+
+📦 downwardAPI:
+    downwardAPI lets containers access pod metadata (e.g., labels, annotations, name, namespace) as files or environment variables.
+
+    🗂️ How It Works:
+            - Provides introspection of pod fields.
+            - Often used for writing metadata into log files or debugging.
+
+    📌 Example:
+            volumes:
+            - name: metadata-volume
+                downwardAPI:
+                items:
+                    - path: "labels"
+                    fieldRef:
+                        fieldPath: metadata.labels
+
+    🧹 Notes:
+            - Useful for runtime awareness (e.g., hostname, labels).
+            - Read-only; cannot modify metadata.

@@ -1,6 +1,9 @@
 output "vpc_id" {
   value = aws_vpc.cluster_vpc.id
 }
+output "eni_subnet_ids" {
+  value = aws_subnet.eni_subnets[*].id
+}
 output "private_subnet_ids" {
   value = aws_subnet.private_subnets[*].id
 }

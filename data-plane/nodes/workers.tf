@@ -6,9 +6,9 @@ resource "aws_eks_node_group" "nodes" {
   capacity_type  = "ON_DEMAND" #or "SPOT"
   instance_types = var.instance_types
   scaling_config {
-    desired_size = 2
+    desired_size = 1
     max_size     = 3
-    min_size     = 2
+    min_size     = 1
   }
   update_config {
     max_unavailable = 1
@@ -21,4 +21,5 @@ resource "aws_eks_node_group" "nodes" {
   }
   depends_on = [ aws_iam_role.worker_nodes_role ]
 }
+
 

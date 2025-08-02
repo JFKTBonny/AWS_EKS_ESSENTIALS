@@ -9,3 +9,6 @@ variable "instance_types" {
 variable "node_name" {
     default = "private-node-group"
 }
+variable "cluster_security_group_id" {
+  
+}

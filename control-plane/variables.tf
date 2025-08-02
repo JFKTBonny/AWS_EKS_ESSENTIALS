@@ -5,5 +5,5 @@ variable "cluster_name" {
 variable "cluster_version" {
   default = "1.31"
 }
-variable "private_subnet_ids" {}
-
+variable "eni_subnet_ids" {}
+variable "vpc_id" {}
