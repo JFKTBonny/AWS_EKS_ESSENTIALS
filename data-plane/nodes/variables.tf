@@ -1,11 +1,18 @@
-variable "cluster_name" {}
-variable "label" {
-  default = "nodes"
+
+variable "cluster_name" {
 }
-variable "subnet_ids" {}
+
+variable "cluster_version" {
+  default = "1.30"
+}
+variable "private_subnets_id" {}
 variable "instance_types" {
   default  = ["t3.small"]
 }
-variable "node_name" {
-    default = "private-node-group"
+
+/*
+variable "ami_id" {
+  default = "ami-0000cd26924f513ba"
 }
+
+*/
