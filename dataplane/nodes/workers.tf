@@ -22,3 +22,4 @@ resource "aws_eks_node_group" "nodes" {
   depends_on = [ aws_iam_role.worker_nodes_role ]
 }
 
+
