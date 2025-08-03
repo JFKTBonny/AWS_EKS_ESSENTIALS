@@ -1,22 +1,19 @@
 provider "aws" {
-  region  = "us-east-1"
+  region = "us-east-1"
   profile = "default"
 }
 
-#create eni in the dataplane (step x)
-module "cluster" {
-  source = "./control-plane"
-  #ENI subnet = private subnets
-  private_subnet_ids = module.vpc.private_subnet_ids
-}
-
 module "vpc" {
-  source                    = "./data-plane/network"
-  cluster_security_group_id = module.cluster.cluster_security_group_id
+  source = "./data-plane/network"
+  
 }
-module "nodes" {
-  source       = "./data-plane/nodes"
-  cluster_name = module.cluster.cluster_name
-  subnet_ids   = module.vpc.private_subnet_ids
+module "control-plane" {
+  source = "./control-plane"
+  private_subnets_id = module.vpc.private_subnet_ids
+}
 
+module "node-grp" {
+  source = "./data-plane/nodes"
+  private_subnets_id = module.vpc.private_subnet_ids
+  cluster_name =  module.control-plane.cluster_name
 }

@@ -1,24 +1,31 @@
-resource "aws_eks_node_group" "nodes" {
+
+# Private Kubernetes node group
+resource "aws_eks_node_group" "karpenter_nodes" {
   cluster_name    = var.cluster_name
-  node_group_name  = var.node_name
-  node_role_arn   =  aws_iam_role.worker_nodes_role.arn
-  subnet_ids = var.subnet_ids
-  capacity_type  = "ON_DEMAND" #or "SPOT"
+  node_group_name = "${var.cluster_name}-ng"
+  node_role_arn   = aws_iam_role.karpenter_nodes_role.arn
+launch_template {
+  id = aws_launch_template.karpenter_tp.id
+  version = "$Latest"
+  }
+  #aws_iam_role.karpenter_nodes_role.arn
+  subnet_ids = var.private_subnets_id
+  # node group type spot but you can use ON DEMAND
+  capacity_type  = "ON_DEMAND"
   instance_types = var.instance_types
   scaling_config {
     desired_size = 2
-    max_size     = 3
-    min_size     = 2
+    max_size     = 10
+    min_size     = 1
   }
   update_config {
     max_unavailable = 1
   }
   labels = {
-    name = var.label
+    "karpenter.sh/controller" = "true"
   }
   tags = {
-    Name = "worker-node"
+    "karpenter.sh/discovery"  = var.cluster_name
   }
-  depends_on = [ aws_iam_role.worker_nodes_role ]
+ 
 }
-

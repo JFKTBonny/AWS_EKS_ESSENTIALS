@@ -12,8 +12,9 @@ variable "cidr_blocks" {
 }
 
 variable "vpc_tag" {
-    default = "public-endpoint-cluster-vpc"
+    default = "karpenter-cluster-vpc"
 }
 
-variable "cluster_security_group_id" {
+variable "cluster_name" {
+    default = "karpenter-cluster"
 }

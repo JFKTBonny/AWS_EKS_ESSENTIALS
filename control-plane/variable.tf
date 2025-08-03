@@ -1,9 +1,7 @@
-
 variable "cluster_name" {
-   default = "public-endpoint-cluster"
+   default = "karpenter-cluster"
 }
 variable "cluster_version" {
   default = "1.31"
 }
-variable "private_subnet_ids" {}
-
+variable "private_subnets_id" {}

@@ -1,11 +1,8 @@
-variable "cluster_name" {}
-variable "label" {
-  default = "nodes"
+
+variable "cluster_name" {
 }
-variable "subnet_ids" {}
+
+variable "private_subnets_id" {}
 variable "instance_types" {
   default  = ["t3.small"]
-}
-variable "node_name" {
-    default = "private-node-group"
 }

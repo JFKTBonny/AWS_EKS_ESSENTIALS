@@ -1,14 +1,25 @@
-resource "aws_eks_cluster" "public_endpoint_cluster" {
+resource "aws_eks_cluster" "karpenter_cluster" {
   name     = var.cluster_name
   version  = var.cluster_version
-  role_arn = aws_iam_role.cluster_role.arn
-  #configure data plane subnets and eni
+  role_arn =  aws_iam_role.cluster_role.arn
+  access_config {
+    authentication_mode = "API_AND_CONFIG_MAP"
+    bootstrap_cluster_creator_admin_permissions = true
+  }
   vpc_config {
     subnet_ids = concat(
-      var.private_subnet_ids
+      var.private_subnets_id
     )
-    endpoint_public_access  = "true"
-    # public_access_cidrs = ["<public ip range"] ip range allowed to access the cluster...
   }
-  depends_on = [ aws_iam_role.cluster_role ]
+  tags = {
+    "karpenter.sh/discovery" = var.cluster_name
+  }
+
+}
+
+#tag security group for karpenter to discover
+resource "aws_ec2_tag" "cluster_primary_security_group" {
+  resource_id = aws_eks_cluster.karpenter_cluster.vpc_config[0].cluster_security_group_id
+  key         = "karpenter.sh/discovery" 
+  value       = var.cluster_name
 }
