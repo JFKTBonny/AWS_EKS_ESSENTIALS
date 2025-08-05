@@ -1,1 +1,49 @@
-                              
+
+
++-------------------------------------------------------------+
+|                         AWS Cloud                           |
+|                                                             |
+|  +------------------+     +---------------------------+    |
+|  | VPC              |     |  VPC Lattice Service      |    |
+|  | +--------------+ |     |  Network                  |    |
+|  | | EKS Cluster  | |     |  (Service Mesh Layer)     |    |
+|  | |  - Pods     | |     |  +---------------------+ |    |
+|  | |  - Services | | <---> |  Service Network       |    |
+|  | +--------------+ |     |  +---------------------+ |    |
+|  |                  |     +---------------------------+    |
+|  +------------------+                                       |
+|                                                             |
+|  +-------------------------------------------------------+  |
+|  | Kubernetes Control Plane                               |  |
+|  |                                                       |  |
+|  |  +---------------------------+                        |  |
+|  |  | Gateway API Controller     |                        |  |
+|  |  | - Installed as Helm Chart  |                        |  |
+|  |  | - Manages Gateways & Routes|                        |  |
+|  |  +---------------------------+                        |  |
+|  +-------------------------------------------------------+  |
+|                                                             |
++-------------------------------------------------------------+
+
+Legend:
+- Arrows indicate interaction/communication
+- EKS Pods run workloads behind Services
+- Gateway API Controller manages VPC Lattice Gateway and routes
+- VPC Lattice Service Network connects VPC resources & external clients
+
+---
+
+### Deployment Steps Flowchart (Summary)
+
+1. Create EKS Cluster
+2. Update kubeconfig
+3. Install Gateway API CRDs
+4. Create GatewayClass (vpc-lattice)
+5. Deploy Gateway API Controller (Helm)
+6. Create VPC Lattice Service Network
+7. Associate VPC with Service Network
+8. Define Gateway resource & HTTPRoutes
+9. Deploy apps behind Kubernetes Services
+10. Verify & Test routing
+
+
