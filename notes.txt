@@ -1,0 +1,110 @@
+
+Istio Service Mesh Overview
+===========================
+
+What is Istio?
+--------------
+Istio is an open-source service mesh that enables secure, reliable, and observable communication between microservices. 
+        It provides: 
+                - traffic management
+                - security
+                - and observability without requiring changes to application code.
+
+Core Components:
+---------------
+        1. Envoy Proxy: Sidecar proxy deployed with each pod to handle inbound/outbound traffic.
+
+        2. Istiod: Control plane that manages configuration and service discovery.
+
+        3. Ingress Gateway: Handles incoming traffic to the mesh.
+        
+        4. Egress Gateway: Manages outgoing traffic from the mesh.
+
+        
+
+Key Features:
+------------
+        - Traffic Management: 
+                   1- Advanced routing (canary, A/B testing), 
+                   2- fault injection
+                   3- retries
+                   4- timeouts.
+
+        - Security: 
+                   1- Mutual TLS
+                   2- policy enforcement
+                   3- identity-based authentication.
+
+        - Observability: 
+                   1- Metrics
+                   2- logs
+                   3- and tracing via Prometheus, Grafana, Jaeger, Kiali.
+
+        - Extensibility: 
+                   1- EnvoyFilters 
+                   2- and Wasm plugins.
+
+
+
+Important CRDs (Custom Resource Definitions):
+-------------------------------------------
+        - VirtualService: Defines routing rules for traffic.
+
+        - DestinationRule: Configures policies for a service (like TLS settings).
+
+        - Gateway: Controls ingress/egress.
+
+        - ServiceEntry: Adds external services to the mesh.
+
+        - PeerAuthentication: Defines mTLS modes.
+
+        - AuthorizationPolicy: Manages access control.
+
+Installation Step:
+------------------
+        1. Create Kubernetes cluster.
+
+        2. Install Istio using:
+                - istioctl
+                - Helm, or Operator.
+        3. Label namespace for sidecar injection: kubectl label namespace default istio-injection=enabled
+                
+        4. Deploy services.
+
+        5. Define routing and security policies using CRDs.
+
+Best Practices
+--------------
+        - Start in non-production environments.
+        - Enable observability tools early.
+        - Use separate VirtualServices for route groups.
+        - Monitor proxy resource usage.
+        - Apply security principles early (e.g., mTLS, RBAC).
+
+Helpful Tools
+-------------
+        - Kiali: Visualizes service mesh topology.
+        - Prometheus/Grafana: Metrics and dashboards.
+        - Jaeger: Tracing.
+        - istioctl analyze: Validates configuration.
+
+Security Features
+-----------------
+        - Automatic certificate/key rotation.
+        - Fine-grained access control.
+        - Restrict external traffic via ServiceEntry.
+        - Secure communication via mTLS.
+
+                                        Istio vs. AWS VPC Lattice
+                                        -------------------------
+                                        
+                        | Feature            | Istio               | AWS VPC Lattice        |
+                        |--------------------|---------------------|-------------------------|
+                        | Platform           | Kubernetes-native   | AWS-managed             |
+                        | Control Plane      | Self-managed        | Fully managed           |
+                        | Observability      | Kiali, Prometheus   | AWS-native metrics/logs |
+                        | Security           | mTLS, RBAC          | IAM, Security Groups    |
+                        | Granularity        | Pod-level           | VPC-level               |
+                        | Target Users       | K8s Developers      | Cloud Infra Teams       |
+
+[  Istio is Cloud Agnostic, has less complex architecture and easy to implement...]                        

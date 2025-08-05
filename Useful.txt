@@ -1,0 +1,47 @@
+The Istio ingress gateway provides external access to the apps running inside your EKS cluster.
+
+### What the Ingress Gateway Does:
+The istio-ingressgateway is a LoadBalancer service managed by Istio that acts as the entry point into the service mesh. 
+It is responsible for:
+
+            1- Receiving incoming traffic from outside the cluster
+            2- Matching requests based on Gateway and VirtualService rules
+            3-  Routing traffic to the appropriate backend services (like blue, green)
+            4- Enabling advanced features like traffic splitting, TLS termination, retries, mirroring, etc.
+
+### How It Works with Your YAMLs:
+        - The Gateway resource defines where and how traffic enters (e.g., port 80, all hosts).
+
+        - The VirtualService defines how that traffic is routed (e.g., 50% to blue, 50% to green).
+
+        Together, they instruct the ingress gateway to: [Accept HTTP traffic on port 80 from any host, and route it based on defined rules.]
+
+        
+
+### Visual Flow:
+
+                    Client (Browser or curl)
+                            |
+                            v
+                    +----------------------+
+                    | istio-ingressgateway |   <-- External LoadBalancer (port 80)
+                    +----------------------+
+                            |
+                            v
+                    +-----------------------------+
+                    | VirtualService (Routing)   |
+                    +-----------------------------+
+                            |           |
+                            v           v
+                        Service:      Service:
+                        green          blue
+
+
+### To Access It:
+You just need to get the external IP of the ingress gateway: [ kubectl get svc istio-ingressgateway -n istio-system ]
+
+Then open your browser or run: [ curl http://<EXTERNAL-IP>/ ]
+
+
+
+

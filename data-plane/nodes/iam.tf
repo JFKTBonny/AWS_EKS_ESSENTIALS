@@ -33,3 +33,15 @@ resource "aws_iam_role_policy_attachment" "amazon_ssm_managed_instance_core" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   role       = aws_iam_role.worker_nodes_role.name
 }
+
+
+resource "aws_iam_role_policy_attachment" "appmesh" {
+  policy_arn = aws_iam_policy.appmesh.arn
+  role       = aws_iam_role.worker_nodes_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "lb" {
+  policy_arn = aws_iam_policy.lbpolicy.arn
+  role       = aws_iam_role.worker_nodes_role.name
+}
+
