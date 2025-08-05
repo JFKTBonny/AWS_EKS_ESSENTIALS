@@ -10,6 +10,10 @@ resource "aws_subnet" "private_subnets" {
   count = 2
   tags = {
     Name = "private-subnet-${count.index+1}"
+    
+     "kubernetes.io/role/internal-elb"               = 1
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    
   }
   
 }
@@ -21,5 +25,7 @@ resource "aws_subnet" "public_subnets" {
   count = 2
   tags = {
     Name = "public-subnet-${count.index+1}"
+      "kubernetes.io/role/elb"                        = 1
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
   }
 }

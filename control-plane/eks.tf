@@ -1,4 +1,4 @@
-resource "aws_eks_cluster" "public_endpoint_cluster" {
+resource "aws_eks_cluster" "lattice-cluster" {
   name     = var.cluster_name
   version  = var.cluster_version
   role_arn = aws_iam_role.cluster_role.arn
@@ -8,7 +8,22 @@ resource "aws_eks_cluster" "public_endpoint_cluster" {
       var.private_subnet_ids
     )
     endpoint_public_access  = "true"
-    # public_access_cidrs = ["<public ip range"] ip range allowed to access the cluster...
   }
   depends_on = [ aws_iam_role.cluster_role ]
+}
+
+resource "null_resource" "update_kubeconfig" {
+  provisioner "local-exec" {
+    command = <<EOT
+      aws eks update-kubeconfig \
+        --region ${var.region} \
+        --name ${var.cluster_name}
+    EOT
+  }
+
+  triggers = {
+    cluster_name = aws_eks_cluster.lattice-cluster.name
+  }
+
+  depends_on = [aws_eks_cluster.lattice-cluster]
 }

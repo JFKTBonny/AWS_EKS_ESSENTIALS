@@ -12,8 +12,12 @@ variable "cidr_blocks" {
 }
 
 variable "vpc_tag" {
-    default = "public-endpoint-cluster-vpc"
+    default = "lattice-cluster-vpc"
 }
 
 variable "cluster_security_group_id" {
 }
+variable "cluster_name" {
+   default = "lattice-cluster"
+}
+

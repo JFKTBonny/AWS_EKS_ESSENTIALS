@@ -5,5 +5,7 @@ resource "aws_vpc" "cluster_vpc" {
   enable_dns_support   = true
   tags = {
     Name = var.vpc_tag
+   
   }
+
 }
